@@ -142,3 +142,6 @@ The number of mice surviving in each group is tracked below.
 plot(fig_alive_count)
 ```
 
+```{r, results='asis', echo=FALSE}
+#knitr::kable(mice)
+```
