@@ -1,0 +1,122 @@
+---
+title: "SCRX Mouse 1 Report"
+author: "Julian Rees"
+date: "2/19/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(xlsxjars)
+library(rJava)
+```
+
+## Summary
+55 NOD/SCID mice were received from LBNL Animal Facility on Monday, 2/13.  ^225^Ac was received on Wednesday, 2/16.  On Thursday (2/17, **Day 0**) **55 mice** were weighed and injected IV with the preparatory dose of IgG at 10 \mu g / g.  One mouse expired immediately following injection, likely due to an air embolism. 
+
+After sterile filtering, the amount of IgG.MB1 supplied by Stemcentrx was insufficient to inject all mice. The mice receiving the lowest dose of ^225^Ac and ^177^Lu, as well as the mice receiving the chelator and our backup "*sentinel*" mice (groups E, I, and K) were injected with an analogous solution of IgG obtained from Sigma. 
+
+On Friday (2/18, **Day 1**) **50 mice** were injected with their predetermined dose (25 $\times$ ^225^Ac, 20 $\times$ ^177^Lu, 5 $\times$ chelator).  The study group assignments are given below. 
+
+Group | Agent | Dose (nCi / 25 g) | IgG Source
+------|---------|------ | --
+A | ^225^Ac | 180 | SCRX
+B | ^225^Ac | 60  | SCRX
+C | ^225^Ac | 20  | SCRX
+D | ^225^Ac | 6.7 | SCRX
+E | ^225^Ac | 2.2 | Sigma
+
+Group | Agent | Dose (uCi / 25 g) | IgG Source
+------|---------|------ | --
+F | ^177^Lu | 120 | SCRX
+G | ^177^Lu | 40  | SCRX
+H | ^177^Lu | 13.3 | SCRX
+I | ^177^Lu | 4.4 | Sigma
+
+Group | Agent | Dose (ug / g) | IgG Source
+------|---------|------ | --
+K | Chelator | ?? | Sigma
+None | None |  None  | Sigma
+
+
+
+
+```{r, echo=FALSE}
+
+# this is the processing code here!  reprints of any components will come below
+library(ggplot2)
+library(reshape2)
+library(xlsx)
+library(plyr)
+
+
+mice <- read.xlsx("../Data/testMice.xlsx", header = TRUE, sheetIndex = 1)
+mice <- mice[,-1]
+mice <- mice[, -ncol(mice)]
+
+# remove premature casualties
+mice <- mice[-36,]
+
+# calculate the doses that each mouse received based on the dosing sheet
+day0dose <- cut(mice$day0weight, breaks = 15.8+1.5*0:7, 
+                labels = 0.1+1:7/100)
+day1dose <- cut(mice$day1weight, breaks = 15.8+1.5*0:7, 
+                labels = 0.1+1:7/100)
+mice_dose <- cbind(mice[,1:3], day0dose, day1dose)
+
+# drop day 0 and modify col names for day to be numeric
+mice <- mice[,-2]
+colnames(mice) <- c('group', '1', '3', '6')
+
+# create factor for dose radionuclide
+agent <- cut(as.numeric(mice$group), breaks = c(0,5,9,10,11),
+             labels = c('Ac225','Lu177','Chelator','Sentinal'))
+mice <- cbind(mice, agent)
+
+# melt the data to plot 
+mmice <- melt(mice, id = c("group", "agent"))
+
+fig_weight <- ggplot(mmice, aes(x = variable, y = value, by = group)) + 
+  geom_boxplot(aes(fill = group)) + 
+  #geom_line(aes(x = as.numeric(as.character(variable)), color = group)) +
+  theme_bw() +
+  labs(x = "Day", y = "Weight", fill = "Group") +
+  scale_x_discrete(limits=1:6) +
+  facet_wrap(~agent)
+
+# replot as a change in weight, take difference and melt
+dmice <- mice
+for(i in seq(ncol(dmice)-2)){
+  dmice[,i+1] = dmice[,i+1] - mice[,2]
+}
+mdmice <- melt(dmice, id = c("group", "agent"))
+
+fig_weight_diff <- ggplot(mdmice, aes(x = variable, y = value, by = group)) + 
+  geom_boxplot(aes(fill = group)) + 
+  #geom_line(aes(x = as.numeric(as.character(variable)), color = group, group = group)) +
+  theme_bw() +
+  labs(x = "Day", y = "Weight Change", fill = "Group") +
+  scale_x_discrete(limits=1:6) +
+  facet_wrap(~agent)
+```
+
+## Mouse weights by day
+The Day 0 weights for the mice were found to be in the range of **18 - 25 g**, with a single outlier at **16 g**.  The change in mouse weight over time is shown below. The statistical parameters for the box plots are:
+
+* Position = Median
+* Height = First to third quartile (25th to 75th percentile)
+* Whiskers = Largest deviation within 1.5 $\times$ inter-quartile range (IQR)
+* Points = Outlyers beyond 1.5 $\times$ IQR
+
+```{r, echo=FALSE}
+plot(fig_weight)
+```
+
+General trends are hard to observe.  Normalizing each mouse's weight to its Day 1 weight provides a better description of the effects of the administered doses.
+
+```{r, echo=FALSE}
+plot(fig_weight_diff)
+```
+
+
+

@@ -31,14 +31,15 @@ mice <- cbind(mice, agent)
 # melt the data to plot 
 mmice <- melt(mice, id = c("group", "agent"))
 
-ggplot(mmice, aes(x = variable, y = value, by = group)) + 
+fig_weight <- ggplot(mmice, aes(x = variable, y = value, by = group)) + 
   geom_boxplot(aes(fill = group)) + 
   #geom_line(aes(x = as.numeric(as.character(variable)), color = group)) +
   theme_bw() +
   labs(x = "Day", y = "Weight", fill = "Group") +
   scale_x_discrete(limits=1:6) +
   facet_wrap(~agent)
-  
+fig_weight
+
 # replot as a change in weight, take difference and melt
 dmice <- mice
 for(i in seq(ncol(dmice)-2)){
@@ -46,10 +47,11 @@ for(i in seq(ncol(dmice)-2)){
 }
 mdmice <- melt(dmice, id = c("group", "agent"))
 
-ggplot(mdmice, aes(x = variable, y = value, by = group)) + 
-  geom_boxplot(aes(fill = group)) + 
+fig_weight_diff <- ggplot(mdmice, aes(x = variable, y = value, by = group)) + 
+  geom_boxplot(aes(fill = group, outlier.fill = group)) + 
   #geom_line(aes(x = as.numeric(as.character(variable)), color = group, group = group)) +
   theme_bw() +
   labs(x = "Day", y = "Weight Change", fill = "Group") +
   scale_x_discrete(limits=1:6) +
   facet_wrap(~agent)
+fig_weight_diff
