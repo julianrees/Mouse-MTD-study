@@ -41,14 +41,15 @@ None | None |  None  | Sigma
 
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 # this is the processing code here!  reprints of any components will come below
+#library(drc)
+#library(drfit)
 library(ggplot2)
 library(reshape2)
 library(xlsx)
 library(plyr)
-
 
 mice <- read.xlsx("../Data/testMice.xlsx", header = TRUE, sheetIndex = 1)
 mice <- mice[,-1]
@@ -83,6 +84,7 @@ fig_weight <- ggplot(mmice, aes(x = variable, y = value, by = group)) +
   labs(x = "Day", y = "Weight", fill = "Group") +
   scale_x_discrete(limits=1:6) +
   facet_wrap(~agent)
+#fig_weight
 
 # replot as a change in weight, take difference and melt
 dmice <- mice
@@ -92,12 +94,28 @@ for(i in seq(ncol(dmice)-2)){
 mdmice <- melt(dmice, id = c("group", "agent"))
 
 fig_weight_diff <- ggplot(mdmice, aes(x = variable, y = value, by = group)) + 
-  geom_boxplot(aes(fill = group)) + 
+  geom_boxplot(aes(fill = group, outlier.fill = group)) + 
   #geom_line(aes(x = as.numeric(as.character(variable)), color = group, group = group)) +
   theme_bw() +
   labs(x = "Day", y = "Weight Change", fill = "Group") +
   scale_x_discrete(limits=1:6) +
   facet_wrap(~agent)
+#fig_weight_diff
+
+# count up the NA values (dead mice)
+
+survivingmice2 <- ddply(mmice, .(group, variable, agent), summarize, 
+      alive = is.finite(value))
+survivingmice2 <- subset(survivingmice2, alive == TRUE)
+
+fig_alive_count <- ggplot(survivingmice2, aes(x = variable, 
+                                             by = group)) + 
+  geom_bar(aes(fill = group), position = position_dodge(width = 1.1)) + 
+  labs(x = "Day", y = "Surviving Mice", fill = "Group") +
+  theme_bw() +
+  scale_x_discrete(limits=1:6) +
+  facet_wrap(~agent)
+#fig_alive_count
 ```
 
 ## Mouse weights by day
@@ -108,15 +126,19 @@ The Day 0 weights for the mice were found to be in the range of **18 - 25 g**, w
 * Whiskers = Largest deviation within 1.5 $\times$ inter-quartile range (IQR)
 * Points = Outlyers beyond 1.5 $\times$ IQR
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 plot(fig_weight)
 ```
 
 General trends are hard to observe.  Normalizing each mouse's weight to its Day 1 weight provides a better description of the effects of the administered doses.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 plot(fig_weight_diff)
 ```
 
+The number of mice surviving in each group is tracked below. 
 
+```{r, echo=FALSE, warning=FALSE}
+plot(fig_alive_count)
+```
 

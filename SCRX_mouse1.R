@@ -1,5 +1,5 @@
 #library(drc)
-library(drfit)
+#library(drfit)
 library(ggplot2)
 library(reshape2)
 library(xlsx)
@@ -58,37 +58,59 @@ fig_weight_diff
 
 # count up the NA values (dead mice)
 
-survivingmice <- ddply(mmice, .(group, variable, agent), summarize,
-      dead = sum(is.na(value)), 
-      live = 5 - dead)
+survivingmice2 <- ddply(mmice, .(group, variable, agent), summarize, 
+      alive = is.finite(value))
+survivingmice2 <- subset(survivingmice2, alive == TRUE)
 
-# this gives large filled in areas
-fig_dead_count <- ggplot(survivingmice, aes(x = as.numeric(as.character(variable)), 
-                                            y = live, by = group)) + 
-  geom_area(aes(fill = group), position = position_dodge(width = 0.2), alpha = 0.2) + 
-  labs(x = "Day", y = "Survival (%)", color = "Group") +
+fig_alive_count <- ggplot(survivingmice2, aes(x = variable, 
+                                             by = group)) + 
+  geom_bar(aes(fill = group), position = position_dodge(width = 1.1)) + 
+  labs(x = "Day", y = "Surviving Mice", fill = "Group") +
   theme_bw() +
   scale_x_discrete(limits=1:6) +
   facet_wrap(~agent)
-fig_dead_count
+fig_alive_count
 
-# this gives just vertical bars
-fig_dead_count <- ggplot(survivingmice, aes(x = variable, 
-                                            y = live, by = group)) + 
-  geom_area(aes(color = group), position = position_dodge(width = 0.2)) + 
-  labs(x = "Day", y = "Survival (%)", color = "Group") +
-  theme_bw() +
-  scale_x_discrete(limits=1:6) +
-  facet_wrap(~agent)
-fig_dead_count
 
-fig_survival <- ggplot(survivingmice, aes(x = as.numeric(as.character(variable)), 
-                                          y = live*20, by = group)) + 
-  geom_line(aes(color = group)) + 
-  geom_point(aes(color = group)) + 
-  geom_area(aes(fill = group), position = position_dodge(width = 0.2), alpha = 0.1) + 
-  labs(x = "Day", y = "Survival (%)", color = "Group") +
-  scale_y_continuous(breaks = seq(0,100,20), limits = c(0,100)) +
-  theme_bw() +
-  facet_wrap(~agent)
-fig_survival
+# STOP HERE FOR COPYING TO REPORT - ALTERNATE SURVIVAL FIGURES BELOW
+
+# survivingmice <- ddply(mmice, .(group, variable, agent), summarize,
+#                        dead = sum(is.na(value)), 
+#                        live = 5 - dead)
+# 
+# # this gives large filled in areas
+# fig_dead_count <- ggplot(survivingmice, aes(x = as.numeric(as.character(variable)), 
+#                                             y = live, by = group)) + 
+#   geom_area(aes(fill = group), position = position_dodge(width = 0.2), alpha = 0.2) + 
+#   labs(x = "Day", y = "Survival (%)", color = "Group") +
+#   theme_bw() +
+#   scale_x_discrete(limits=1:6) +
+#   facet_wrap(~agent)
+# fig_dead_count
+# 
+# # this gives just vertical bars
+# fig_dead_count <- ggplot(survivingmice, aes(x = variable, 
+#                                             y = live, by = group)) + 
+#   geom_area(aes(color = group), position = position_dodge(width = 0.2)) + 
+#   labs(x = "Day", y = "Survival (%)", color = "Group") +
+#   theme_bw() +
+#   scale_x_discrete(limits=1:6) +
+#   facet_wrap(~agent)
+# fig_dead_count
+# 
+# 
+# 
+# # working on improving vertical bars
+# 
+# 
+# # this is survival tracked with lines and area fill
+# fig_survival <- ggplot(survivingmice, aes(x = as.numeric(as.character(variable)), 
+#                                           y = live*20, by = group)) + 
+#   geom_line(aes(color = group)) + 
+#   geom_point(aes(color = group)) + 
+#   geom_area(aes(fill = group), position = position_dodge(width = 0.2), alpha = 0.1) + 
+#   labs(x = "Day", y = "Survival (%)", color = "Group") +
+#   scale_y_continuous(breaks = seq(0,100,20), limits = c(0,100)) +
+#   theme_bw() +
+#   facet_wrap(~agent)
+# fig_survival
