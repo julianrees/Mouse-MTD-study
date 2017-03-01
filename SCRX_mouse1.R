@@ -8,9 +8,9 @@ library(plyr)
 # import the data
 mice <- read.xlsx("../Data/SCRXmouse1Weights.xlsx", header = TRUE, sheetIndex = 1)
 
-# convert row names to mouse number
+# convert row names to mouse number and drop mouse number column
 rownames(mice) <- mice$Mouse..
-# mice <- mice[, -2]
+mice <- mice[, -2]
 
 # calculate the doses that each mouse received based on the dosing sheet
 day0dose <- cut(mice$Day.0, breaks = 15.8+1.5*0:7, 
@@ -20,7 +20,7 @@ day1dose <- cut(mice$Day.1, breaks = 15.8+1.5*0:7,
 mice_dose <- cbind(mice[,1:3], day0dose, day1dose)
 
 # modify col names for day to be numeric
-colnames(mice) <- c('group', 'mousenum', '0', '1', '4', '7', '11')
+colnames(mice) <- c('group', '0', '1', '4', '7', '11')
 
 # create factor for dose radionuclide
 agent <- cut(as.numeric(mice$group), breaks = c(0,5,9,10,11),
@@ -42,10 +42,10 @@ fig_weight
 # compute the differences based on ref day 1
 dmice <- mice
 refday <- 1
-for(i in seq(ncol(dmice)-3)){
-  dmice[,i+2] = dmice[,i+2] - mice[,3+refday]
+for(i in seq(ncol(dmice)-2)){
+  dmice[,i+1] = dmice[,i+1] - mice[,2+refday]
 }
-mdmice <- melt(dmice, id = c("group", "agent", "mousenum"))
+mdmice <- melt(dmice, id = c("group", "agent"))
 
 fig_weight_diff <- ggplot(mdmice, aes(x = variable, y = value, by = group)) + 
   geom_boxplot(aes(fill = group, color = group), outlier.color = NULL) + 
@@ -79,13 +79,21 @@ fig_weight_diff <- ggplot(dat, aes(x = variable, y = value, by = group)) +
 fig_weight_diff
 
 
-dat <- mdmice[ which(mdmice$agent == 'Ac225' & mdmice$variable != 0), ]
-dat <- mdmice[ which(mdmice$variable != 0), ]
-dat$variable <- as.numeric(levels(dat$variable)[dat$variable])
-str(dat)
+ # add the mouse number back to data
 
-ggplot(dat, aes(x = variable, y = value, by = mousenum)) + 
+micenum <- cbind(dmice, rownames(dmice))
+colnames(micenum) <- c(colnames(micenum)[-ncol(micenum)], 'mousenumber')
+mdmicenum <- melt(micenum, id = c("group", "agent", "mousenumber"))
+
+
+
+dat <- mdmicenum[ which(mdmicenum$agent == 'Ac225' & mdmicenum$variable != 0), ]
+dat <- mdmicenum[ which(mdmicenum$variable != 0), ]
+dat$variable <- as.numeric(levels(dat$variable)[dat$variable])
+
+ggplot(dat, aes(x = variable, y = value, by = mousenumber)) + 
   geom_line(aes(color = group)) + 
+  geom_point(aes(color = group)) +
   theme_bw() +
   labs(x = "Day", y = "Weight Change", fill = "Group") +
   scale_x_discrete(limits=1:11) +
