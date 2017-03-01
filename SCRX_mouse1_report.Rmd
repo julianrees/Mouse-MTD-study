@@ -121,7 +121,7 @@ fig_alive_count <- ggplot(survivingmice2, aes(x = variable,
 ## Mouse weights by day
 The Day 0 weights for the mice were found to be in the range of **18 - 25 g**, with a single outlier at **16 g**.  The change in mouse weight over time is shown below. The statistical parameters for the box plots are:
 
-* Position = Median
+* Inner rule position = Median
 * Height = First to third quartile (25th to 75th percentile)
 * Whiskers = Largest deviation within 1.5 $\times$ inter-quartile range (IQR)
 * Points = Outlyers beyond 1.5 $\times$ IQR

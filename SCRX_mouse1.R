@@ -5,23 +5,26 @@ library(reshape2)
 library(xlsx)
 library(plyr)
 
-mice <- read.xlsx("../Data/testMice.xlsx", header = TRUE, sheetIndex = 1)
-mice <- mice[,-1]
-mice <- mice[, -ncol(mice)]
+mice <- read.xlsx("../Data/SCRXmouse1Weights.xlsx", header = TRUE, sheetIndex = 1)
+#mice <- mice[,-1]
+#mice <- mice[, -ncol(mice)]
 
 # remove premature casualties
-mice <- mice[-36,]
+# mice <- mice[-36,]
+
+rownames(mice) <- mice$Mouse..
+mice <- mice[, -2]
 
 # calculate the doses that each mouse received based on the dosing sheet
-day0dose <- cut(mice$day0weight, breaks = 15.8+1.5*0:7, 
+day0dose <- cut(mice$Day.0, breaks = 15.8+1.5*0:7, 
                 labels = 0.1+1:7/100)
-day1dose <- cut(mice$day1weight, breaks = 15.8+1.5*0:7, 
+day1dose <- cut(mice$Day.1, breaks = 15.8+1.5*0:7, 
                 labels = 0.1+1:7/100)
 mice_dose <- cbind(mice[,1:3], day0dose, day1dose)
 
 # drop day 0 and modify col names for day to be numeric
 mice <- mice[,-2]
-colnames(mice) <- c('group', '1', '3', '6')
+colnames(mice) <- c('group', '1', '4', '7', '11')
 
 # create factor for dose radionuclide
 agent <- cut(as.numeric(mice$group), breaks = c(0,5,9,10,11),
@@ -36,7 +39,7 @@ fig_weight <- ggplot(mmice, aes(x = variable, y = value, by = group)) +
   #geom_line(aes(x = as.numeric(as.character(variable)), color = group)) +
   theme_bw() +
   labs(x = "Day", y = "Weight", fill = "Group") +
-  scale_x_discrete(limits=1:6) +
+  scale_x_discrete(limits=1:12) +
   facet_wrap(~agent)
 fig_weight
 
@@ -52,7 +55,7 @@ fig_weight_diff <- ggplot(mdmice, aes(x = variable, y = value, by = group)) +
   #geom_line(aes(x = as.numeric(as.character(variable)), color = group, group = group)) +
   theme_bw() +
   labs(x = "Day", y = "Weight Change", fill = "Group") +
-  scale_x_discrete(limits=1:6) +
+  scale_x_discrete(limits=1:11) +
   facet_wrap(~agent)
 fig_weight_diff
 
