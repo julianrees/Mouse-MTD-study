@@ -5,15 +5,12 @@ library(reshape2)
 library(xlsx)
 library(plyr)
 
+# import the data
 mice <- read.xlsx("../Data/SCRXmouse1Weights.xlsx", header = TRUE, sheetIndex = 1)
-#mice <- mice[,-1]
-#mice <- mice[, -ncol(mice)]
 
-# remove premature casualties
-# mice <- mice[-36,]
-
+# convert row names to mouse number
 rownames(mice) <- mice$Mouse..
-mice <- mice[, -2]
+# mice <- mice[, -2]
 
 # calculate the doses that each mouse received based on the dosing sheet
 day0dose <- cut(mice$Day.0, breaks = 15.8+1.5*0:7, 
@@ -22,9 +19,8 @@ day1dose <- cut(mice$Day.1, breaks = 15.8+1.5*0:7,
                 labels = 0.1+1:7/100)
 mice_dose <- cbind(mice[,1:3], day0dose, day1dose)
 
-# drop day 0 and modify col names for day to be numeric
-mice <- mice[,-2]
-colnames(mice) <- c('group', '1', '4', '7', '11')
+# modify col names for day to be numeric
+colnames(mice) <- c('group', 'mousenum', '0', '1', '4', '7', '11')
 
 # create factor for dose radionuclide
 agent <- cut(as.numeric(mice$group), breaks = c(0,5,9,10,11),
@@ -43,15 +39,16 @@ fig_weight <- ggplot(mmice, aes(x = variable, y = value, by = group)) +
   facet_wrap(~agent)
 fig_weight
 
-# replot as a change in weight, take difference and melt
+# compute the differences based on ref day 1
 dmice <- mice
-for(i in seq(ncol(dmice)-2)){
-  dmice[,i+1] = dmice[,i+1] - mice[,2]
+refday <- 1
+for(i in seq(ncol(dmice)-3)){
+  dmice[,i+2] = dmice[,i+2] - mice[,3+refday]
 }
-mdmice <- melt(dmice, id = c("group", "agent"))
+mdmice <- melt(dmice, id = c("group", "agent", "mousenum"))
 
 fig_weight_diff <- ggplot(mdmice, aes(x = variable, y = value, by = group)) + 
-  geom_boxplot(aes(fill = group, outlier.fill = group)) + 
+  geom_boxplot(aes(fill = group, color = group), outlier.color = NULL) + 
   #geom_line(aes(x = as.numeric(as.character(variable)), color = group, group = group)) +
   theme_bw() +
   labs(x = "Day", y = "Weight Change", fill = "Group") +
@@ -59,20 +56,71 @@ fig_weight_diff <- ggplot(mdmice, aes(x = variable, y = value, by = group)) +
   facet_wrap(~agent)
 fig_weight_diff
 
-# count up the NA values (dead mice)
 
-survivingmice2 <- ddply(mmice, .(group, variable, agent), summarize, 
-      alive = is.finite(value))
-survivingmice2 <- subset(survivingmice2, alive == TRUE)
-
-fig_alive_count <- ggplot(survivingmice2, aes(x = variable, 
-                                             by = group)) + 
-  geom_bar(aes(fill = group), position = position_dodge(width = 1.1)) + 
-  labs(x = "Day", y = "Surviving Mice", fill = "Group") +
+fig_weight_diff <- ggplot(mdmice, aes(x = variable, y = value, by = group)) + 
+  geom_boxplot(aes(fill = group), outlier.color = NULL) + 
+  #geom_line(aes(x = as.numeric(as.character(variable)), color = group, group = group)) +
   theme_bw() +
-  scale_x_discrete(limits=1:6) +
+  labs(x = "Day", y = "Weight Change", fill = "Group") +
+  scale_x_discrete(limits=1:11) +
+  facet_wrap(~group)
+fig_weight_diff
+
+
+dat <- mdmice [which(mdmice$agent == 'Ac225' | mdmice$agent == 'Sentinal'), ]
+
+fig_weight_diff <- ggplot(dat, aes(x = variable, y = value, by = group)) + 
+  geom_boxplot(aes(fill = group), outlier.color = NULL) + 
+  #geom_line(aes(x = as.numeric(as.character(variable)), color = group, group = group)) +
+  theme_bw() +
+  labs(x = "Day", y = "Weight Change", fill = "Group") +
+  scale_x_discrete(limits=1:11) +
+  facet_wrap(~group)
+fig_weight_diff
+
+
+dat <- mdmice[ which(mdmice$agent == 'Ac225' & mdmice$variable != 0), ]
+dat <- mdmice[ which(mdmice$variable != 0), ]
+dat$variable <- as.numeric(levels(dat$variable)[dat$variable])
+str(dat)
+
+ggplot(dat, aes(x = variable, y = value, by = mousenum)) + 
+  geom_line(aes(color = group)) + 
+  theme_bw() +
+  labs(x = "Day", y = "Weight Change", fill = "Group") +
+  scale_x_discrete(limits=1:11) +
+  facet_wrap(~group)
+
+
+
+
+fig_weight_diff <- ggplot(mdmicenum, aes(x = variable, y = value, by = mousenumber)) + 
+  geom_line(aes(color = group)) + 
+  #geom_line(aes(x = as.numeric(as.character(variable)), color = group, group = group)) +
+  theme_bw() +
+  labs(x = "Day", y = "Weight Change", fill = "Group") +
+  scale_x_discrete(limits=1:11) +
   facet_wrap(~agent)
-fig_alive_count
+fig_weight_diff
+
+
+
+
+
+# count up the NA values (dead mice)
+# 
+# survivingmice2 <- ddply(mmice, .(group, variable, agent), summarize, 
+#       alive = is.finite(value))
+# survivingmice2 <- subset(survivingmice2, alive == TRUE)
+# 
+# fig_alive_count <- ggplot(survivingmice2, aes(x = variable, 
+#                                              by = group)) + 
+#   geom_bar(aes(fill = group), position = position_dodge(width = 1.1)) + 
+#   labs(x = "Day", y = "Surviving Mice", fill = "Group") +
+#   theme_bw() +
+#   scale_x_discrete(limits=1:6) +
+#   facet_wrap(~agent)
+# fig_alive_count
 
 
 # STOP HERE FOR COPYING TO REPORT - ALTERNATE SURVIVAL FIGURES BELOW
