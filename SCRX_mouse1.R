@@ -31,7 +31,8 @@ mice <- cbind(mice, agent)
 mmice <- melt(mice, id = c("group", "agent"))
 
 fig_weight <- ggplot(mmice, aes(x = variable, y = value, by = group)) + 
-  geom_boxplot(aes(fill = group)) + 
+  geom_boxplot(aes(color = group)) + guides(color=FALSE) +
+  geom_boxplot(aes(fill = group), outlier.color = NA) + 
   #geom_line(aes(x = as.numeric(as.character(variable)), color = group)) +
   theme_bw() +
   labs(x = "Day", y = "Weight", fill = "Group") +
@@ -39,16 +40,86 @@ fig_weight <- ggplot(mmice, aes(x = variable, y = value, by = group)) +
   facet_wrap(~agent)
 fig_weight
 
-# compute the differences based on ref day 1
+
+# compute the differences based on ref day 0
 dmice <- mice
-refday <- 1
+refday <- 0
+
 for(i in seq(ncol(dmice)-2)){
   dmice[,i+1] = dmice[,i+1] - mice[,2+refday]
 }
 mdmice <- melt(dmice, id = c("group", "agent"))
 
+fig_day <- ggplot(mdmice, aes(x = group, y = value, by = variable)) + 
+  geom_boxplot(aes(color = variable), position = 'dodge') + 
+  geom_bar(aes(fill = variable), position = 'dodge', stat = 'identity') +
+  theme_bw() +
+  labs(x = "Group", y = "Weight Change (Day 0)", fill = "Group", color = NULL)
+
+fig_day
+
+update_geom_defaults("point", list(color = NULL))
+fig_day <- ggplot(mdmice, aes(x = group, y = value, by = variable)) + 
+  geom_boxplot(aes(color = variable), position = 'dodge') + guides(color = FALSE) +
+  geom_boxplot(aes(fill = variable), position = 'dodge', outlier.color = NA) + 
+  theme_bw() +
+  labs(x = "Group", y = "Weight Change (Day 0)", fill = "Group", color = NULL)
+
+fig_day
+
+
+
+
+
+
+
+
+
+
+
+
+# compute the differences based on ref day 1
+dmice <- mice
+refday <- 1
+
+for(i in seq(ncol(dmice)-2)){
+  dmice[,i+1] = dmice[,i+1] - mice[,2+refday]
+}
+mdmice <- melt(dmice, id = c("group", "agent"))
+
+
+
+update_geom_defaults("point", list(color = NULL))
+fig_day <- ggplot(dat, aes(x = group, y = value, by = variable)) + 
+  geom_boxplot(aes(color = variable), position = 'dodge') +
+  guides(color = FALSE) +
+  geom_boxplot(aes(fill = variable), position = 'dodge', outlier.color = NA) + 
+  theme_bw() +
+  labs(x = "Group", y = "Weight Change (Day 1)", fill = "Group", color = NULL)
+
+fig_day
+
+
+
+dat <- mdmice[ which(mdmice$variable != 0), ]
+
+update_geom_defaults("point", list(color = NULL))
+fig_day <- ggplot(dat, aes(x = group, y = value, by = variable)) + 
+  geom_boxplot(aes(color = variable), position = 'dodge') +
+  guides(color = FALSE) +
+  geom_boxplot(aes(fill = variable), position = 'dodge', outlier.color = NA) + 
+  theme_bw() +
+  labs(x = "Group", y = "Weight Change (Day 1)", fill = "Group", color = NULL)
+
+fig_day
+
+
+
+
+
 fig_weight_diff <- ggplot(mdmice, aes(x = variable, y = value, by = group)) + 
   geom_boxplot(aes(fill = group, color = group), outlier.color = NULL) + 
+  geom_boxplot(aes(fill = group), outlier.color = NA) + 
   #geom_line(aes(x = as.numeric(as.character(variable)), color = group, group = group)) +
   theme_bw() +
   labs(x = "Day", y = "Weight Change", fill = "Group") +
