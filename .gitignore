@@ -3,3 +3,5 @@
 .RData
 .Ruserdata
 *.html
+SCRX_mouse1.R
+Rfigs/
