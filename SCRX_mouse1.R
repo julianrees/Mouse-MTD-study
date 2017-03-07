@@ -4,7 +4,7 @@ library(xlsx)
 library(plyr)
 
 # import the data
-mice <- read.xlsx("../Data/SCRXmouse1Weights.xlsx", header = TRUE, sheetIndex = 1)
+mice <- read.xlsx("../Data/SCRXmouse1Weights18.xlsx", header = TRUE, sheetIndex = 1)
 
 # convert row names to mouse number and convert mouse number column to factor
 rownames(mice) <- mice$Mouse..
