@@ -26,6 +26,9 @@ agent <- cut(as.numeric(mice$group), breaks = c(0,5,9,10,11),
              labels = c('Ac225','Lu177','Chelator','Sentinal'))
 mice <- cbind(mice, agent)
 
+# remove the sentinals from the data
+mice <- mice[which(mice$agent != 'Sentinal'), ]
+
 # compute the differences from day 0
 dmice0 <- mice
 refday <- 0
@@ -76,7 +79,7 @@ ggplot(dat, aes(x = group, y = value, by = variable)) +
   geom_boxplot(aes(fill = variable), width = w, outlier.color = NA) + 
   scale_x_discrete() +
   ggtitle('Statistical Mouse Weights') +
-  labs(x = "Group", y = "Weight (%)", fill = "Day") + 
+  labs(x = "Group", y = "Weight (g)", fill = "Day") + 
   ggsave(filename = 'Rfigs/weight_byDay.png', 
          width = fwid, height = fhei, units = "in")
 
@@ -85,7 +88,7 @@ ggplot(dat, aes(x = group, y = value, by = variable)) +
   geom_bar(aes(fill = variable), position = 'dodge', stat = 'identity', width = w) + 
   scale_x_discrete() +
   ggtitle('Average Mouse Weights') +
-  labs(x = "Group", y = "Weight (%)", fill = "Day") + 
+  labs(x = "Group", y = "Weight (g) ", fill = "Day") + 
   ggsave(filename = 'Rfigs/weight_byDay_mean.png', 
          width = fwid, height = fhei, units = "in")
 
@@ -171,7 +174,7 @@ dat <- melt(dmice0[ which(dmice0$agent == 'Ac225' | dmice0$agent == 'Sentinal' |
 ggplot(dat, aes(x = variable, y = value, by = group)) + 
   geom_boxplot(aes(fill = group, color = group), outlier.color = NULL) + guides(color=FALSE) +
   geom_boxplot(aes(fill = group), outlier.color = NA) + 
-  ggtitle('Statistical Mouse Trajectories, Ac225 + Controls') +
+  ggtitle('Statistical Mouse Trajectories, Ac225 + Control') +
   labs(x = "Day", y = "Weight Change from Day 0 (%)", fill = "Group") +
   #scale_x_discrete(limits=1:11) +
   facet_wrap(~group, nrow=1) + 
@@ -183,7 +186,7 @@ dat <- melt(dmice0[ which(dmice0$agent == 'Lu177' | dmice0$agent == 'Sentinal' |
 ggplot(dat, aes(x = variable, y = value, by = group)) + 
   geom_boxplot(aes(fill = group, color = group), outlier.color = NULL) + guides(color=FALSE) +
   geom_boxplot(aes(fill = group), outlier.color = NA) + 
-  ggtitle('Statistical Mouse Trajectories, Lu177 + Controls') +
+  ggtitle('Statistical Mouse Trajectories, Lu177 + Control') +
   labs(x = "Day", y = "Weight Change from Day 0 (%)", fill = "Group") +
   #scale_x_discrete(limits=1:11) +
   facet_wrap(~group, nrow=1) + 
@@ -195,7 +198,7 @@ dat <- melt(dmice1[ which(dmice1$agent == 'Ac225' | dmice1$agent == 'Sentinal' |
 ggplot(dat, aes(x = variable, y = value, by = group)) + 
   geom_boxplot(aes(fill = group, color = group), outlier.color = NULL) + guides(color=FALSE) +
   geom_boxplot(aes(fill = group), outlier.color = NA) + 
-  ggtitle('Statistical Mouse Trajectories, Ac225 + Controls') +
+  ggtitle('Statistical Mouse Trajectories, Ac225 + Control') +
   labs(x = "Day", y = "Weight Change from Day 1 (%)", fill = "Group") +
   #scale_x_discrete(limits=1:11) +
   facet_wrap(~group, nrow=1) + 
@@ -207,7 +210,7 @@ dat <- melt(dmice1[ which(dmice1$agent == 'Lu177' | dmice1$agent == 'Sentinal' |
 ggplot(dat, aes(x = variable, y = value, by = group)) + 
   geom_boxplot(aes(fill = group, color = group), outlier.color = NULL) + guides(color=FALSE) +
   geom_boxplot(aes(fill = group), outlier.color = NA) + 
-  ggtitle('Statistical Mouse Trajectories, Lu177 + Controls') +
+  ggtitle('Statistical Mouse Trajectories, Lu177 + Control') +
   labs(x = "Day", y = "Weight Change from Day 1 (%)", fill = "Group") +
   #scale_x_discrete(limits=1:11) +
   facet_wrap(~group, nrow=1) +
@@ -222,7 +225,7 @@ dat$variable <- as.numeric(levels(dat$variable)[dat$variable])
 ggplot(dat, aes(x = variable, y = value, by = mousenum)) + 
   geom_line(aes(color = group)) + 
   geom_point(aes(color = group)) +
-  ggtitle('Individual Mouse Trajectories, Ac225 + Controls') +
+  ggtitle('Individual Mouse Trajectories, Ac225 + Control') +
   labs(x = "Day", y = "Weight Change from Day 0 (%)", color = "Group") +
   #scale_x_discrete(limits=1:11) +
   facet_wrap(~group, nrow=1) + 
@@ -235,7 +238,7 @@ dat$variable <- as.numeric(levels(dat$variable)[dat$variable])
 ggplot(dat, aes(x = variable, y = value, by = mousenum)) + 
   geom_line(aes(color = group)) + 
   geom_point(aes(color = group)) +
-  ggtitle('Individual Mouse Trajectories, Lu177 + Controls') +
+  ggtitle('Individual Mouse Trajectories, Lu177 + Control') +
   labs(x = "Day", y = "Weight Change from Day 0 (%)", color = "Group") +
   #scale_x_discrete(limits=1:11) +
   facet_wrap(~group, nrow=1) +
@@ -248,7 +251,7 @@ dat$variable <- as.numeric(levels(dat$variable)[dat$variable])
 ggplot(dat, aes(x = variable, y = value, by = mousenum)) + 
   geom_line(aes(color = group)) + 
   geom_point(aes(color = group)) +
-  ggtitle('Individual Mouse Trajectories, Ac225 + Controls') +
+  ggtitle('Individual Mouse Trajectories, Ac225 + Control') +
   labs(x = "Day", y = "Weight Change from Day 1 (%)", color = "Group") +
   #scale_x_discrete(limits=1:11) +
   facet_wrap(~group, nrow=1) +
@@ -261,7 +264,7 @@ dat$variable <- as.numeric(levels(dat$variable)[dat$variable])
 ggplot(dat, aes(x = variable, y = value, by = mousenum)) + 
   geom_line(aes(color = group)) + 
   geom_point(aes(color = group)) +
-  ggtitle('Individual Mouse Trajectories, Lu177 + Controls') +
+  ggtitle('Individual Mouse Trajectories, Lu177 + Control') +
   labs(x = "Day", y = "Weight Change from Day 1 (%)", color = "Group") +
   #scale_x_discrete(limits=1:11) +
   facet_wrap(~group, nrow=1) +
