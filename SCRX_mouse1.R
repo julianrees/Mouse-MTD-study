@@ -276,34 +276,47 @@ dat <- melt(dmice0, id = c("group", "agent", "mousenum"))
 
 for(day in levels(dat$variable)){
   control <- mean(dat$value[ which(dat$variable == day & dat$group == "J") ])
-  dat$value[ which(dat$variable == day & dat$group != "J")] <- 
-    dat$value[ which(dat$variable == day & dat$group != "J")] - control
+  dat$value[ which(dat$variable == day)] <- 
+    dat$value[ which(dat$variable == day)] - control
 }
 
-dat <- dat[ which(dat$group != 'J' & dat$variable != '0'), ]
-
-ggplot(dat, aes(x = group, y = value, by = variable)) + 
+ggplot(dat[ which(dat$group != 'J' & dat$variable != '0'), ], aes(x = group, y = value, by = variable)) + 
   geom_boxplot(aes(color = variable), width = w) + guides(color=FALSE) + 
   geom_boxplot(aes(fill = variable), width = w, outlier.color = NA) + 
   scale_x_discrete() +
   ggtitle('Statistical Mouse Weights') +
-  labs(x = "Group", y = "Weight Change from Control (%)", fill = "Day") +
+  labs(x = "Group", y = "Weight Change from Mean Control (%)", fill = "Day") +
   ggsave(filename = 'Rfigs/weightdiff_control_byDay.png', 
        width = fwid, height = fhei, units = "in")
 
-mdat <- melt(dcast(dat, group ~ variable, mean), id = 'group')
+mdat <- melt(dcast(dat[ which(dat$group != 'J' & dat$variable != '0'), ], group ~ variable, mean), id = 'group')
 ggplot(mdat, aes(x = group, y = value, by = variable)) + 
   geom_bar(aes(fill = variable), position = 'dodge', stat = 'identity', width = w) + 
   scale_x_discrete() +
   ggtitle('Average Mouse Weights') +
-  labs(x = "Group", y = "Weight Change from Control (%)", fill = "Day") +
+  labs(x = "Group", y = "Weight Change from Control (%)", fill = "Day") + 
   ggsave(filename = 'Rfigs/weightdiff_control_byDay_mean.png', 
          width = fwid, height = fhei, units = "in")
 
+dat$variable <- as.numeric(levels(dat$variable)[dat$variable])
+ggplot(dat[ which(dat$agent == 'Ac225' | dat$agent == 'Chelator' & dat$variable != '0'), ], 
+       aes(x = variable, y = value, by = mousenum)) + 
+  geom_line(aes(color = group)) + 
+  geom_point(aes(color = group)) +
+  ggtitle('Individual Mouse Trajectories, Ac225 + Control') +
+  labs(x = "Day", y = "Weight Change from Mean Control (%)", color = "Group") +
+  #scale_x_discrete(limits=1:11) +
+  facet_wrap(~group, nrow=1) + 
+  ggsave(filename = 'Rfigs/weightdiff_control_Ac225_indivMice.png', 
+         width = fwid, height = fhei, units = "in")
     
-
-
-
-
-
-
+ggplot(dat[ which(dat$agent == 'Lu177' | dat$agent == 'Chelator' & dat$variable != '0'), ], 
+       aes(x = variable, y = value, by = mousenum)) + 
+  geom_line(aes(color = group)) + 
+  geom_point(aes(color = group)) +
+  ggtitle('Individual Mouse Trajectories, Lu177 + Control') +
+  labs(x = "Day", y = "Weight Change from Mean Control (%)", color = "Group") +
+  #scale_x_discrete(limits=1:11) +
+  facet_wrap(~group, nrow=1) + 
+  ggsave(filename = 'Rfigs/weightdiff_control_Lu177_indivMice.png', 
+         width = fwid, height = fhei, units = "in")
