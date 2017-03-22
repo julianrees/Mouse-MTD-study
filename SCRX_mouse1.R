@@ -4,7 +4,7 @@ library(xlsx)
 library(plyr)
 
 # import the data
-mice <- read.xlsx("../Data/SCRXmouse1Weights18.xlsx", header = TRUE, sheetIndex = 1)
+mice <- read.xlsx("../Data/SCRXmouse1Weights28.xlsx", header = TRUE, sheetIndex = 1)
 
 # convert row names to mouse number and convert mouse number column to factor
 rownames(mice) <- mice$Mouse..
@@ -57,8 +57,6 @@ refday <- 1
 for(i in seq(ncol(dmice1)-3)){
   dmice1[,i+2] = (dmice1[,i+2] - mice[,3+refday])*(100/mice[,3+refday])
 }
-
-
 
 
 # trim day 0 data
@@ -270,4 +268,42 @@ ggplot(dat, aes(x = variable, y = value, by = mousenum)) +
   facet_wrap(~group, nrow=1) +
   ggsave(filename = 'Rfigs/weightDiff1_byGroup_Lu177_indivMice.png', 
          width = fwid, height = fhei, units = "in")
+
+
+# plot the difference in % weight change from control
+
+dat <- melt(dmice0, id = c("group", "agent", "mousenum"))
+
+for(day in levels(dat$variable)){
+  control <- mean(dat$value[ which(dat$variable == day & dat$group == "J") ])
+  dat$value[ which(dat$variable == day & dat$group != "J")] <- 
+    dat$value[ which(dat$variable == day & dat$group != "J")] - control
+}
+
+dat <- dat[ which(dat$group != 'J' & dat$variable != '0'), ]
+
+ggplot(dat, aes(x = group, y = value, by = variable)) + 
+  geom_boxplot(aes(color = variable), width = w) + guides(color=FALSE) + 
+  geom_boxplot(aes(fill = variable), width = w, outlier.color = NA) + 
+  scale_x_discrete() +
+  ggtitle('Statistical Mouse Weights') +
+  labs(x = "Group", y = "Weight Change from Control (%)", fill = "Day") +
+  ggsave(filename = 'Rfigs/weightdiff_control_byDay.png', 
+       width = fwid, height = fhei, units = "in")
+
+mdat <- melt(dcast(dat, group ~ variable, mean), id = 'group')
+ggplot(mdat, aes(x = group, y = value, by = variable)) + 
+  geom_bar(aes(fill = variable), position = 'dodge', stat = 'identity', width = w) + 
+  scale_x_discrete() +
+  ggtitle('Average Mouse Weights') +
+  labs(x = "Group", y = "Weight Change from Control (%)", fill = "Day") +
+  ggsave(filename = 'Rfigs/weightdiff_control_byDay_mean.png', 
+         width = fwid, height = fhei, units = "in")
+
+    
+
+
+
+
+
 
